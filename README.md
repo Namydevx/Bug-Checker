@@ -19,3 +19,12 @@ Skrip Python sederhana untuk mengecek status dari banyak bug host (SNI/host) sec
 ```bash
 git clone https://github.com/Namydevx/Bug-Checker
 cd Bug-Checker
+
+🐍 Butuh Python 3.x
+pip install requests
+
+
+Jalankan Script Python
+python bug_checker.py
+
+
