@@ -5,6 +5,7 @@ import socket
 import ssl
 import os
 
+# Warna terminal
 RED = '\033[91m'
 GREEN = '\033[92m'
 YELLOW = '\033[93m'
@@ -13,13 +14,13 @@ CYAN = '\033[96m'
 RESET = '\033[0m'
 
 def clear():
-    os.system('clear' if os.name == 'posix' else 'cls')
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 def banner():
     print(f"""{CYAN}
    ╔═══════════════════════════════════╗
    ║    {GREEN}BUG MULTI-CHECKER by NamyDevx{CYAN}    ║
-   ║       {YELLOW}Support HTTP • Payload • WS • DNS{CYAN} ║
+   ║     {YELLOW}Support HTTP • Payload • WS • DNS{CYAN} ║
    ╚═══════════════════════════════════╝{RESET}
 """)
 
@@ -95,9 +96,9 @@ def check_websocket_upgrade(host):
 def check_sni_redirect(host):
     try:
         ip = socket.gethostbyname(host)
-        if ip.startswith("10.") or ip.startswith("100.") or ip.startswith("192.168") or ip.startswith("172."):
+        if ip.startswith(("10.", "100.", "192.168.", "172.")):
             return f"🔄 {host} — Redirect ke IP lokal: {ip}"
-        elif ip.startswith("36.") or ip.startswith("180.") or ip.startswith("114."):
+        elif ip.startswith(("36.", "180.", "114.")):
             return f"🛡️ {host} — Mungkin injeksi ISP (IP: {ip})"
         else:
             return f"✅ {host} — IP: {ip}"
@@ -137,4 +138,4 @@ def main():
     print(f"\n{CYAN}Selesai dalam {round(time.time() - start, 2)} detik.{RESET}")
 
 if __name__ == "__main__":
-    main()""
+    main()
