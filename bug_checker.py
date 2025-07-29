@@ -2,6 +2,7 @@
 import requests
 from concurrent.futures import ThreadPoolExecutor
 import time
+import socket
 
 # Baca daftar bug dari file eksternal
 def load_bug_list(filename="list-bug.txt"):
@@ -17,7 +18,7 @@ def check_bug(host):
     try:
         response = requests.get(url, timeout=5)
         code = response.status_code
-        if code in [101]:
+        if code == 101:
             return f"\u2728 {host} — Switching Protocols (101)"
         elif code in [200, 301, 302]:
             return f"\u2705 {host} — LIVE ({code})"
@@ -34,7 +35,8 @@ def check_bug_with_payload(host):
         "Host": host,
         "X-Online-Host": host,
         "User-Agent": "Mozilla/5.0",
-        "Connection": "Upgrade"
+        "Connection": "Upgrade",
+        "Upgrade": "websocket"
     }
     try:
         response = requests.get(url, headers=headers, timeout=5)
@@ -50,19 +52,43 @@ def check_bug_with_payload(host):
     except requests.exceptions.RequestException:
         return f"\u274c {host} — Timeout via payload"
 
+def websocket_handshake(host):
+    try:
+        port = 80
+        sock = socket.create_connection((host, port), timeout=5)
+        handshake = (
+            f"GET / HTTP/1.1\r\n"
+            f"Host: {host}\r\n"
+            f"Upgrade: websocket\r\n"
+            f"Connection: Upgrade\r\n"
+            f"Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+            f"Sec-WebSocket-Version: 13\r\n\r\n"
+        )
+        sock.send(handshake.encode())
+        response = sock.recv(1024).decode()
+        sock.close()
+        if "101 Switching Protocols" in response:
+            return f"\u2728 {host} — Switching Protocols via raw socket"
+        else:
+            return f"\u274c {host} — Tidak support WebSocket"
+    except Exception:
+        return f"\u274c {host} — Gagal konek raw WebSocket"
+
 def main():
     bug_list = load_bug_list()
     if not bug_list:
         return
 
     print("=== CEK BUG HOST MULTI ===")
-    print("Mode: 1) Normal  2) Pakai Payload")
-    mode = input("Pilih mode (1/2): ").strip()
+    print("Mode: 1) Normal  2) Pakai Payload  3) WebSocket Handshake")
+    mode = input("Pilih mode (1/2/3): ").strip()
 
     start = time.time()
     with ThreadPoolExecutor(max_workers=10) as executor:
         if mode == "2":
             results = executor.map(check_bug_with_payload, bug_list)
+        elif mode == "3":
+            results = executor.map(websocket_handshake, bug_list)
         else:
             results = executor.map(check_bug, bug_list)
 
