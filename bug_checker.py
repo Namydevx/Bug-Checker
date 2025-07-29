@@ -17,7 +17,9 @@ def check_bug(host):
     try:
         response = requests.get(url, timeout=5)
         code = response.status_code
-        if code in [200, 301, 302]:
+        if code in [101]:
+            return f"\u2728 {host} — Switching Protocols (101)"
+        elif code in [200, 301, 302]:
             return f"\u2705 {host} — LIVE ({code})"
         elif code == 403:
             return f"⚠️ {host} — Terlarang ({code})"
@@ -32,12 +34,14 @@ def check_bug_with_payload(host):
         "Host": host,
         "X-Online-Host": host,
         "User-Agent": "Mozilla/5.0",
-        "Connection": "keep-alive"
+        "Connection": "Upgrade"
     }
     try:
         response = requests.get(url, headers=headers, timeout=5)
         code = response.status_code
-        if code in [200, 301, 302]:
+        if code == 101:
+            return f"\u2728 {host} — Switching Protocols via payload (101)"
+        elif code in [200, 301, 302]:
             return f"\u2705 {host} — LIVE via payload ({code})"
         elif code == 403:
             return f"⚠️ {host} — Terlarang via payload ({code})"
